@@ -12,18 +12,27 @@ from modules.speech_to_text import transcribe_audio
 from modules.structure_analyzer import analyze_text
 from modules.ui_utils import get_emotion_emoji
 
+from datetime import date
+
 st.sidebar.page_link("app.py", label="📥 记录日记")
 st.sidebar.page_link("pages/view_calendar.py", label="📆 日历总览")
 
-# ✅ 关键修正：从 session_state 中获取日期
+# 获取 session 中传入的日期，或者默认是今天
 target_date_from_calendar = st.session_state.get("target_date")
-if target_date_from_calendar:
-    st.subheader(f"正在为 {target_date_from_calendar} 创建新日记")
-    # ✅ 获取后立即从 session_state 中移除，避免后续刷新时仍存在
-    del st.session_state["target_date"]
-    current_date = target_date_from_calendar
-else:
-    current_date = datetime.now().isoformat()[:10]
+default_date = (
+    datetime.strptime(target_date_from_calendar, "%Y-%m-%d").date()
+    if target_date_from_calendar
+    else date.today()
+)
+
+# ✅ 用户可以修改这个日期
+selected_date = st.date_input("📅 选择/修改日记日期", value=default_date, format="YYYY-MM-DD")
+
+# 用于后续保存记录的日期（字符串格式）
+current_date = selected_date.isoformat()
+
+st.subheader(f"📝 正在为 {current_date} 创建新日记")
+
 
 st.title("每日60s - AI语音日记")
 
